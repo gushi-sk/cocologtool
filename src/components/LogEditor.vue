@@ -14,7 +14,7 @@
             <div class="icon-area">
               <img :src="iconMap[element.name] || defaultIcon" alt="icon" />
             </div>
-            <div class="log-content">
+            <div class="log-content left-align">
               <div class="char-name" :style="{ color: element.color }">{{ element.name }}</div>
               <div class="log-text">{{ element.text }}</div>
             </div>
@@ -94,16 +94,16 @@ function exportHtml() {
   margin-bottom: 16px;
 }
 .icon-area {
-  width: 200px;
-  height: 200px;
+  width: 100px;
+  height: 100px;
   flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 .icon-area img {
-  width: 200px;
-  height: 200px;
+  width: 100px;
+  height: 100px;
   object-fit: cover;
   border-radius: 8px;
   background: #222;
@@ -117,12 +117,17 @@ function exportHtml() {
   min-width: 0;
   flex: 1;
 }
+.log-content.left-align {
+  text-align: left;
+}
 .char-name {
   font-weight: bold;
   font-size: 1.2em;
   margin-bottom: 8px;
+  text-align: left;
 }
 .log-text {
   color: #222;
+  text-align: left;
 }
 </style>
