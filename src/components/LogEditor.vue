@@ -8,6 +8,16 @@
           {{ tab }}
         </label>
       </div>
+      <div class="color-controls">
+        <label>
+          ページ背景色: <input type="color" v-model="pageBgColor" />
+          <input type="text" v-model="pageBgColor" style="width:90px;" />
+        </label>
+        <label style="margin-left:2em;">
+          セリフ枠背景色: <input type="color" v-model="bubbleBgColor" />
+          <input type="text" v-model="bubbleBgColor" style="width:90px;" />
+        </label>
+      </div>
       <draggable v-model="filteredLogs" item-key="id" class="log-list">
         <template #item="{ element }">
           <div class="log-row">
@@ -39,18 +49,34 @@ const props = defineProps<{
 }>()
 const emit = defineEmits(['update'])
 
+
 const tabs = computed(() => Array.from(new Set(props.logs.map(l => l.tab))))
 const selectedTab = ref('')
 const defaultIcon = 'data:image/svg+xml;base64,' + btoa('<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg"><rect width="200" height="200" fill="#222"/></svg>')
 
 const filteredLogs = ref(props.logs.filter(l => l.tab === tabs.value[0]))
 
+// 色設定（デフォルトは現状のCSS値）
+const pageBgColor = ref('#242424')
+const bubbleBgColor = ref('#ffffff')
+
+onMounted(() => {
+  // bodyの背景色取得
+  const root = getComputedStyle(document.documentElement)
+  pageBgColor.value = root.getPropertyValue('background-color')?.trim() || '#ffffff'
+  bubbleBgColor.value = root.getPropertyValue('--bubble-bg')?.trim() || '#fff'
+  selectedTab.value = tabs.value[0] || ''
+})
+
 watch(selectedTab, (tab) => {
   filteredLogs.value = props.logs.filter(l => l.tab === tab)
 })
 
-onMounted(() => {
-  selectedTab.value = tabs.value[0] || ''
+watch(pageBgColor, (val) => {
+  document.body.style.backgroundColor = val
+})
+watch(bubbleBgColor, (val) => {
+  document.documentElement.style.setProperty('--bubble-bg', val)
 })
 
 function exportHtml() {
@@ -109,13 +135,21 @@ function exportHtml() {
   background: #222;
 }
 .log-content {
+.log-content {
   border: 1px solid #ccc;
   border-radius: 8px;
   padding: 16px;
   margin-left: 16px;
-  background: #fff;
+  background: var(--bubble-bg, #fff);
   min-width: 0;
   flex: 1;
+}
+
+.color-controls {
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 1em;
 }
 .log-content.left-align {
   text-align: left;
