@@ -5,7 +5,15 @@
       <button @click="emitBack">キャラクターアイコン画像設定画面に戻る</button>
       <button @click="exportHtml" style="margin-left:1em;">エクスポート</button>
     </div>
-      <div style="margin-bottom: 32px;"></div>
+    <div style="margin-bottom: 32px;"></div>
+    <div class="log-title-row">
+      <label>
+        ログタイトル：
+        <input type="text" v-model="logTitle" style="width: 60%; font-size: 1.1em; margin-left: 0.5em;"
+          placeholder="タイトルを入力" />
+      </label>
+    </div>
+    <div style="margin-bottom: 32px;"></div>
     <div v-if="tabs.length">
       <div class="tab-select-row">
         <div class="tab-select">
@@ -50,7 +58,8 @@
               </div>
               <div class="log-content left-align">
                 <button class="delete-btn" @click="deleteLog(element.id)" title="この行を削除" type="button">×</button>
-                <div class="char-name" :style="{ color: charColorMap[element.name] || element.color }">{{ element.name }}</div>
+                <div class="char-name" :style="{ color: charColorMap[element.name] || element.color }">{{ element.name
+                  }}</div>
                 <div class="log-text">{{ element.text }}</div>
               </div>
             </div>
@@ -113,6 +122,8 @@ const showAddTab = ref(false)
 const addedTabs = ref<string[]>([])
 const defaultIcon = 'data:image/svg+xml;base64,' + btoa('<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg"><rect width="200" height="200" fill="#222"/></svg>')
 
+
+const logTitle = ref('')
 const filteredLogs = ref([...props.logs])
 
 
@@ -177,6 +188,13 @@ function exportHtml() {
   // 画像をbase64で埋め込み、CSS・背景色・バブル色・画像サイズを現状に合わせて1ファイルのhtmlを生成
   const css = `<style>
     body { background: ${pageBgColor.value}; }
+    .log-title-export {
+      text-align: center;
+      font-size: 2em;
+      font-weight: bold;
+      margin: 32px 0 40px 0;
+      color: ${bubbleBgColor.value};
+    }
     .log-row { display: flex; align-items: center; margin-bottom: 16px; }
     .icon-area { width: 100px; height: 100px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
     .icon-area img { width: 100px; height: 100px; object-fit: cover; border-radius: 8px; background: #222; }
@@ -196,6 +214,7 @@ function exportHtml() {
 
   // 編集画面の順序通りに、必要なログのみ出力
   const html = `<!DOCTYPE html><html lang='ja'><head><meta charset='utf-8'><title>cocologtool export</title>${css}</head><body>` +
+    (logTitle.value ? `<div class='log-title-export'>${escapeHtml(logTitle.value)}</div>` : '') +
     filteredLogs.value
       .filter(l => l.tab === mainTab || addTabs.includes(l.tab))
       .map(l => {
@@ -233,26 +252,33 @@ const charColorMap = computed(() => {
   margin-bottom: 16px;
   justify-content: center;
 }
+
 .tab-select {
   margin-bottom: 0;
   margin-right: 16px;
 }
+
 .tab-select label {
   margin-right: 16px;
   font-weight: bold;
 }
+
 .add-tab-btn-area {
   margin-left: 8px;
 }
+
 .add-tab-list {
   margin-bottom: 16px;
 }
+
 .add-tab-checkbox {
   margin-right: 16px;
 }
+
 .log-list {
   margin-bottom: 24px;
 }
+
 .log-row {
   display: flex;
   align-items: center;
@@ -260,13 +286,16 @@ const charColorMap = computed(() => {
   width: 100%;
   box-sizing: border-box;
 }
+
 .added-tab-row {
   display: flex;
 }
+
 .added-tab-empty {
   width: 50%;
   flex-shrink: 0;
 }
+
 .added-tab-content {
   width: 50%;
   background: var(--bubble-bg, #fff);
@@ -276,11 +305,13 @@ const charColorMap = computed(() => {
   position: relative;
   box-sizing: border-box;
 }
+
 .added-tab-label {
   margin-left: 8px;
   font-size: 0.95em;
   font-weight: normal;
 }
+
 .icon-area {
   width: 100px;
   height: 100px;
@@ -289,6 +320,7 @@ const charColorMap = computed(() => {
   align-items: center;
   justify-content: center;
 }
+
 .icon-area img {
   width: 100px;
   height: 100px;
@@ -315,9 +347,11 @@ const charColorMap = computed(() => {
   gap: 1em;
   justify-content: center;
 }
+
 .log-content.left-align {
   text-align: left;
 }
+
 .delete-btn {
   position: absolute;
   top: 4px;
@@ -332,23 +366,33 @@ const charColorMap = computed(() => {
   z-index: 2;
   transition: color 0.2s;
 }
+
 .delete-btn:hover {
   color: #e00;
 }
+
 .log-content {
   position: relative;
 }
+
 .char-name {
   font-weight: bold;
   font-size: 1.0em;
   margin-bottom: 8px;
   text-align: left;
 }
+
 .log-text {
   color: var(--bubble-text, #222);
   text-align: left;
 }
+
 .button-row {
   margin-bottom: 24px;
 }
 </style>
+
+.log-title-row {
+margin-bottom: 18px;
+text-align: center;
+}
