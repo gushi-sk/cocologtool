@@ -1,6 +1,11 @@
 <template>
   <div>
     <h2>ログ編集画面</h2>
+    <div class="button-row">
+      <button @click="exportHtml">エクスポート</button>
+      <button @click="emitBack" style="margin-left:1em;">キャラクターアイコン画像設定画面に戻る</button>
+    </div>
+      <div style="margin-bottom: 32px;"></div>
     <div v-if="tabs.length">
       <div class="tab-select">
         <label v-for="tab in tabs" :key="tab">
@@ -39,8 +44,6 @@
           </div>
         </template>
       </draggable>
-      <button @click="exportHtml">エクスポート</button>
-      <button @click="emitBack" style="margin-left:1em;">キャラクターアイコン画像設定画面に戻る</button>
     </div>
     <div v-else>
       <p>ログデータがありません。</p>
@@ -182,5 +185,8 @@ function exportHtml() {
 .log-text {
   color: var(--bubble-text, #222);
   text-align: left;
+}
+.button-row {
+  margin-bottom: 24px;
 }
 </style>

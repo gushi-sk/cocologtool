@@ -1,6 +1,8 @@
 <template>
   <div>
     <h2>キャラクターアイコン画像設定</h2>
+    <button @click="emitBack" style="margin-left:1em;">ログアップロード画面に戻る</button>
+    <div style="margin-bottom: 32px;"></div>
     <div v-for="char in characters" :key="char.name" style="display:flex;align-items:center;margin-bottom:1em">
       <div style="width:60px;height:60px;background:#000;display:flex;align-items:center;justify-content:center;margin-right:1em;">
         <img v-if="icons[char.name]" :src="icons[char.name]" style="width:100%;height:100%;object-fit:cover;" />
@@ -9,7 +11,6 @@
       <input type="file" accept="image/*" @change="e=>onIconChange(e, char.name)" />
     </div>
     <button @click="emitDone">設定完了</button>
-    <button @click="emitBack" style="margin-left:1em;">ログアップロード画面に戻る</button>
   </div>
 </template>
 
