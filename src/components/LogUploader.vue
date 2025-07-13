@@ -55,7 +55,7 @@ function onFileChange(e: Event) {
         const colorMatch = style.match(/color\s*:\s*([^;]+);?/)?.[1] || '#000'
         const spans = p.querySelectorAll('span')
         if (spans.length !== 3) continue
-        const [tab, name, text] = Array.from(spans).map(s => s.textContent || '')
+        const [tab, name, text] = [spans[0]?.textContent || '', spans[1]?.textContent || '', spans[2]?.innerHTML || '']
         logs.push({ tab, name, text, color: colorMatch })
         if (!charSet.has(name)) charSet.set(name, colorMatch)
       }

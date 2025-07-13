@@ -60,7 +60,7 @@
                 <button class="delete-btn" @click="deleteLog(element.id)" title="この行を削除" type="button">×</button>
                 <div class="char-name" :style="{ color: charColorMap[element.name] || element.color }">{{ element.name
                   }}</div>
-                <div class="log-text">{{ element.text }}</div>
+                <div class="log-text" v-html="formatText(element.text)"></div>
               </div>
             </div>
             <template v-for="tab in addedTabs">
@@ -72,7 +72,7 @@
                     {{ element.name }}
                     <span class="added-tab-label" :style="{ color: bubbleTextColor }">{{ tab }}</span>
                   </div>
-                  <div class="log-text">{{ element.text }}</div>
+                  <div class="log-text" v-html="formatText(element.text)"></div>
                 </div>
               </div>
             </template>
@@ -175,13 +175,22 @@ watch(bubbleTextColor, (val) => {
   document.documentElement.style.setProperty('--bubble-text', val)
 })
 
+
 function escapeHtml(str: string) {
+  // <br>は一時的にプレースホルダに置換してエスケープ後に戻す
   return String(str)
+    .replace(/<br\s*\/?>/gi, '[[BR]]')
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
+    .replace(/'/g, '&#39;')
+    .replace(/\[\[BR\]\]/g, '<br>');
+}
+
+function formatText(text: string) {
+  // <br>はそのまま、他はescape
+  return escapeHtml(text);
 }
 
 function exportHtml() {
@@ -199,8 +208,8 @@ function exportHtml() {
     .icon-area { width: 100px; height: 100px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
     .icon-area img { width: 100px; height: 100px; object-fit: cover; border-radius: 8px; background: #222; }
     .log-content { border: 1px solid ${bubbleBorderColor.value}; border-radius: 8px; padding: 16px; margin-left: 16px; background: ${bubbleBgColor.value}; min-width: 0; flex: 1; text-align: left; position: relative; }
-    .char-name { font-weight: bold; font-size: 1.2em; margin-bottom: 8px; text-align: left; }
-    .log-text { color: ${bubbleTextColor.value}; text-align: left; }
+    .char-name { font-weight: bold; font-size: 1em; margin-bottom: 8px; text-align: left; }
+    .log-text { color: ${bubbleTextColor.value}; text-align: left; font-size: 1em; }
     .added-tab-row { display: flex; }
     .added-tab-empty { width: 50%; }
     .added-tab-content { width: 50%; background: ${bubbleBgColor.value}; border: 1px solid ${bubbleBorderColor.value}; border-radius: 8px; padding: 16px; position: relative; }
@@ -221,10 +230,10 @@ function exportHtml() {
         if (l.tab === mainTab) {
           const icon = props.iconMap[l.name] || defaultIcon;
           const charColor = charColorMap.value[l.name] || l.color;
-          return `<div class='log-row'><div class='icon-area'><img src='${icon}' /></div><div class='log-content'><div class='char-name' style='color:${charColor}'>${escapeHtml(l.name)}</div><div class='log-text'>${escapeHtml(l.text)}</div></div></div>`;
+          return `<div class='log-row'><div class='icon-area'><img src='${icon}' /></div><div class='log-content'><div class='char-name' style='color:${charColor}'>${escapeHtml(l.name)}</div><div class='log-text'>${formatText(l.text)}</div></div></div>`;
         } else {
           const charColor = charColorMap.value[l.name] || l.color;
-          return `<div class='log-row added-tab-row'><div class='added-tab-empty'></div><div class='log-content added-tab-content'><div class='char-name' style='color:${charColor}'>${escapeHtml(l.name)}<span class='added-tab-label'>${escapeHtml(l.tab)}</span></div><div class='log-text'>${escapeHtml(l.text)}</div></div></div>`;
+          return `<div class='log-row added-tab-row'><div class='added-tab-empty'></div><div class='log-content added-tab-content'><div class='char-name' style='color:${charColor}'>${escapeHtml(l.name)}<span class='added-tab-label'>${escapeHtml(l.tab)}</span></div><div class='log-text'>${formatText(l.text)}</div></div></div>`;
         }
       }).join('') +
     '</body></html>';
