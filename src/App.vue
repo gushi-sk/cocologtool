@@ -1,17 +1,39 @@
+
 <script setup lang="ts">
-import HelloWorld from './components/HelloWorld.vue'
+import { ref } from 'vue'
+import LogUploader from './components/LogUploader.vue'
+import CharacterIconSetting from './components/CharacterIconSetting.vue'
+
+const step = ref<'upload' | 'icon' | 'done'>('upload')
+const parsed = ref<any>(null)
+const icons = ref<Record<string, string>>({})
+
+function onParsed(data: any) {
+  parsed.value = data
+  step.value = 'icon'
+}
+
+function onIconDone(iconMap: Record<string, string>) {
+  icons.value = iconMap
+  step.value = 'done'
+}
 </script>
 
+
+
 <template>
-  <div>
-    <a href="https://vite.dev" target="_blank">
-      <img src="/vite.svg" class="logo" alt="Vite logo" />
-    </a>
-    <a href="https://vuejs.org/" target="_blank">
-      <img src="./assets/vue.svg" class="logo vue" alt="Vue logo" />
-    </a>
+  <h1>cocologtool</h1>
+  <div v-if="step === 'upload'">
+    <LogUploader @parsed="onParsed" />
   </div>
-  <HelloWorld msg="Vite + Vue" />
+  <div v-else-if="step === 'icon'">
+    <CharacterIconSetting :characters="parsed.characters" @done="onIconDone" />
+  </div>
+  <div v-else>
+    <h2>設定完了</h2>
+    <p>キャラクターアイコン設定が完了しました。</p>
+    <!-- ここに次の画面や編集画面への遷移を追加予定 -->
+  </div>
 </template>
 
 <style scoped>
