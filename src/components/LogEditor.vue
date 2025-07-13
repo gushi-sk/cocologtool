@@ -80,14 +80,15 @@ watch(bubbleBgColor, (val) => {
 })
 
 function exportHtml() {
-  // 画像をbase64で埋め込み、CSSも含めて1ファイルのhtmlを生成
+  // 画像をbase64で埋め込み、CSS・背景色・バブル色・画像サイズを現状に合わせて1ファイルのhtmlを生成
   const css = `<style>
+    body { background: ${pageBgColor.value}; }
     .log-row { display: flex; align-items: center; margin-bottom: 16px; }
-    .icon-area { width: 200px; height: 200px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
-    .icon-area img { width: 200px; height: 200px; object-fit: cover; border-radius: 8px; background: #222; }
-    .log-content { border: 1px solid #ccc; border-radius: 8px; padding: 16px; margin-left: 16px; background: #fff; min-width: 0; flex: 1; }
-    .char-name { font-weight: bold; font-size: 1.2em; margin-bottom: 8px; }
-    .log-text { color: #222; }
+    .icon-area { width: 100px; height: 100px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+    .icon-area img { width: 100px; height: 100px; object-fit: cover; border-radius: 8px; background: #222; }
+    .log-content { border: 1px solid #ccc; border-radius: 8px; padding: 16px; margin-left: 16px; background: ${bubbleBgColor.value}; min-width: 0; flex: 1; text-align: left; }
+    .char-name { font-weight: bold; font-size: 1.2em; margin-bottom: 8px; text-align: left; }
+    .log-text { color: #222; text-align: left; }
   </style>`
   const html = `<!DOCTYPE html><html><head><meta charset='utf-8'><title>cocologtool export</title>${css}</head><body>` +
     filteredLogs.value.map(l => {
@@ -134,7 +135,7 @@ function exportHtml() {
   border-radius: 8px;
   background: #222;
 }
-.log-content {
+
 .log-content {
   border: 1px solid #ccc;
   border-radius: 8px;
