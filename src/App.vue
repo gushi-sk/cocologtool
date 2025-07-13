@@ -11,17 +11,19 @@ const step = ref<'upload' | 'icon' | 'edit' | 'done'>('upload')
 const parsed = ref<any>(null)
 const icons = ref<Record<string, string>>({})
 const logsWithId = ref<any[]>([])
-
+const characters = ref<{ name: string; color: string }[]>([])
 
 function onParsed(data: any) {
   parsed.value = data
+  characters.value = data.characters.map((c: any) => ({ ...c }))
   // 各ログにidを付与
   logsWithId.value = data.logs.map((l: any, i: number) => ({ ...l, id: i }))
   step.value = 'icon'
 }
 
-function onIconDone(iconMap: Record<string, string>) {
-  icons.value = iconMap
+function onIconDone(payload: { icons: Record<string, string>, characters: { name: string; color: string }[] }) {
+  icons.value = payload.icons
+  characters.value = payload.characters
   step.value = 'edit'
 }
 </script>
@@ -34,10 +36,10 @@ function onIconDone(iconMap: Record<string, string>) {
     <LogUploader @parsed="onParsed" />
   </div>
   <div v-else-if="step === 'icon'">
-    <CharacterIconSetting :characters="parsed.characters" @done="onIconDone" @back="step = 'upload'" />
+    <CharacterIconSetting :characters="characters" @done="onIconDone" @back="step = 'upload'" />
   </div>
   <div v-else-if="step === 'edit'">
-    <LogEditor :logs="logsWithId" :iconMap="icons" @back="step = 'icon'" />
+    <LogEditor :logs="logsWithId" :iconMap="icons" :characters="characters" @back="step = 'icon'" />
   </div>
   <div v-else>
     <h2>設定完了</h2>

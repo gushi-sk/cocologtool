@@ -38,7 +38,7 @@
               <img :src="iconMap[element.name] || defaultIcon" alt="icon" />
             </div>
             <div class="log-content left-align">
-              <div class="char-name" :style="{ color: element.color }">{{ element.name }}</div>
+              <div class="char-name" :style="{ color: charColorMap[element.name] || element.color }">{{ element.name }}</div>
               <div class="log-text">{{ element.text }}</div>
             </div>
           </div>
@@ -58,6 +58,7 @@ import draggable from 'vuedraggable'
 const props = defineProps<{
   logs: { tab: string; name: string; text: string; color: string; id: number }[]
   iconMap: Record<string, string>
+  characters: { name: string; color: string }[]
 }>()
 const emit = defineEmits(['update', 'back'])
 function emitBack() {
@@ -122,6 +123,14 @@ function exportHtml() {
   a.click()
   URL.revokeObjectURL(a.href)
 }
+
+const charColorMap = computed(() => {
+  const map: Record<string, string> = {};
+  for (const c of props.characters) {
+    map[c.name] = c.color;
+  }
+  return map;
+});
 </script>
 
 <style scoped>
@@ -178,7 +187,7 @@ function exportHtml() {
 }
 .char-name {
   font-weight: bold;
-  font-size: 1.2em;
+  font-size: 1.0em;
   margin-bottom: 8px;
   text-align: left;
 }
