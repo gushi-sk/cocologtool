@@ -13,9 +13,17 @@
           ページ背景色: <input type="color" v-model="pageBgColor" />
           <input type="text" v-model="pageBgColor" style="width:90px;" />
         </label>
-        <label style="margin-left:2em;">
+        <label>
           セリフ枠背景色: <input type="color" v-model="bubbleBgColor" />
           <input type="text" v-model="bubbleBgColor" style="width:90px;" />
+        </label>
+        <label>
+          セリフ枠線色: <input type="color" v-model="bubbleBorderColor" />
+          <input type="text" v-model="bubbleBorderColor" style="width:90px;" />
+        </label>
+        <label>
+          セリフ文字色: <input type="color" v-model="bubbleTextColor" />
+          <input type="text" v-model="bubbleTextColor" style="width:90px;" />
         </label>
       </div>
       <draggable v-model="filteredLogs" item-key="id" class="log-list">
@@ -56,15 +64,14 @@ const defaultIcon = 'data:image/svg+xml;base64,' + btoa('<svg width="200" height
 
 const filteredLogs = ref(props.logs.filter(l => l.tab === tabs.value[0]))
 
+
 // 色設定（デフォルトは現状のCSS値）
 const pageBgColor = ref('#242424')
 const bubbleBgColor = ref('#ffffff')
+const bubbleBorderColor = ref('#000000')
+const bubbleTextColor = ref('#333333')
 
 onMounted(() => {
-  // bodyの背景色取得
-  const root = getComputedStyle(document.documentElement)
-  pageBgColor.value = root.getPropertyValue('background-color')?.trim() || '#ffffff'
-  bubbleBgColor.value = root.getPropertyValue('--bubble-bg')?.trim() || '#fff'
   selectedTab.value = tabs.value[0] || ''
 })
 
@@ -78,6 +85,12 @@ watch(pageBgColor, (val) => {
 watch(bubbleBgColor, (val) => {
   document.documentElement.style.setProperty('--bubble-bg', val)
 })
+watch(bubbleBorderColor, (val) => {
+  document.documentElement.style.setProperty('--bubble-border', val)
+})
+watch(bubbleTextColor, (val) => {
+  document.documentElement.style.setProperty('--bubble-text', val)
+})
 
 function exportHtml() {
   // 画像をbase64で埋め込み、CSS・背景色・バブル色・画像サイズを現状に合わせて1ファイルのhtmlを生成
@@ -86,9 +99,9 @@ function exportHtml() {
     .log-row { display: flex; align-items: center; margin-bottom: 16px; }
     .icon-area { width: 100px; height: 100px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
     .icon-area img { width: 100px; height: 100px; object-fit: cover; border-radius: 8px; background: #222; }
-    .log-content { border: 1px solid #ccc; border-radius: 8px; padding: 16px; margin-left: 16px; background: ${bubbleBgColor.value}; min-width: 0; flex: 1; text-align: left; }
+    .log-content { border: 1px solid ${bubbleBorderColor.value}; border-radius: 8px; padding: 16px; margin-left: 16px; background: ${bubbleBgColor.value}; min-width: 0; flex: 1; text-align: left; }
     .char-name { font-weight: bold; font-size: 1.2em; margin-bottom: 8px; text-align: left; }
-    .log-text { color: #222; text-align: left; }
+    .log-text { color: ${bubbleTextColor.value}; text-align: left; }
   </style>`
   const html = `<!DOCTYPE html><html><head><meta charset='utf-8'><title>cocologtool export</title>${css}</head><body>` +
     filteredLogs.value.map(l => {
@@ -137,7 +150,7 @@ function exportHtml() {
 }
 
 .log-content {
-  border: 1px solid #ccc;
+  border: 1px solid var(--bubble-border, #ccc);
   border-radius: 8px;
   padding: 16px;
   margin-left: 16px;
@@ -151,6 +164,7 @@ function exportHtml() {
   display: flex;
   align-items: center;
   gap: 1em;
+  justify-content: center;
 }
 .log-content.left-align {
   text-align: left;
@@ -162,7 +176,7 @@ function exportHtml() {
   text-align: left;
 }
 .log-text {
-  color: #222;
+  color: var(--bubble-text, #222);
   text-align: left;
 }
 </style>
