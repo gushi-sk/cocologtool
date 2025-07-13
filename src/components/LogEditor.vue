@@ -7,10 +7,20 @@
     </div>
       <div style="margin-bottom: 32px;"></div>
     <div v-if="tabs.length">
-      <div class="tab-select">
-        <label v-for="tab in tabs" :key="tab">
-          <input type="radio" name="tab" :value="tab" v-model="selectedTab" />
-          {{ tab }}
+      <div class="tab-select-row">
+        <div class="tab-select">
+          <label v-for="tab in tabs" :key="tab">
+            <input type="radio" name="tab" :value="tab" v-model="selectedTab" @change="onTabChange" />
+            {{ tab }}
+          </label>
+        </div>
+        <div v-if="tabs.length > 1" class="add-tab-btn-area">
+          <button @click="toggleAddTab" type="button">表示するタブを追加</button>
+        </div>
+      </div>
+      <div v-if="showAddTab && tabs.length > 1" class="add-tab-list">
+        <label v-for="tab in tabs.filter(t => t !== selectedTab)" :key="tab" class="add-tab-checkbox">
+          <input type="checkbox" :value="tab" v-model="addedTabs" /> {{ tab }}
         </label>
       </div>
       <div class="color-controls">
@@ -31,17 +41,32 @@
           <input type="text" v-model="bubbleTextColor" style="width:90px;" />
         </label>
       </div>
-      <draggable v-model="filteredLogs" item-key="id" class="log-list">
+      <draggable v-model="filteredLogs" item-key="id" class="log-list" @end="onDragEnd">
         <template #item="{ element }">
-          <div class="log-row">
-            <div class="icon-area">
-              <img :src="iconMap[element.name] || defaultIcon" alt="icon" />
+          <div>
+            <div v-if="element.tab === selectedTab" class="log-row">
+              <div class="icon-area">
+                <img :src="iconMap[element.name] || defaultIcon" alt="icon" />
+              </div>
+              <div class="log-content left-align">
+                <button class="delete-btn" @click="deleteLog(element.id)" title="この行を削除" type="button">×</button>
+                <div class="char-name" :style="{ color: charColorMap[element.name] || element.color }">{{ element.name }}</div>
+                <div class="log-text">{{ element.text }}</div>
+              </div>
             </div>
-            <div class="log-content left-align">
-              <button class="delete-btn" @click="deleteLog(element.id)" title="この行を削除" type="button">×</button>
-              <div class="char-name" :style="{ color: charColorMap[element.name] || element.color }">{{ element.name }}</div>
-              <div class="log-text">{{ element.text }}</div>
-            </div>
+            <template v-for="tab in addedTabs">
+              <div v-if="element.tab === tab" class="log-row added-tab-row">
+                <div class="added-tab-empty"></div>
+                <div class="log-content added-tab-content">
+                  <button class="delete-btn" @click="deleteLog(element.id)" title="この行を削除" type="button">×</button>
+                  <div class="char-name" :style="{ color: charColorMap[element.name] || element.color }">
+                    {{ element.name }}
+                    <span class="added-tab-label" :style="{ color: bubbleTextColor }">{{ tab }}</span>
+                  </div>
+                  <div class="log-text">{{ element.text }}</div>
+                </div>
+              </div>
+            </template>
           </div>
         </template>
       </draggable>
@@ -55,10 +80,17 @@
 <script setup lang="ts">
 // ログ行の削除
 function deleteLog(id: number) {
+  // filteredLogsから該当idを除く
   const idx = filteredLogs.value.findIndex(l => l.id === id)
   if (idx !== -1) {
     filteredLogs.value.splice(idx, 1)
+    emit('update', [...filteredLogs.value])
   }
+}
+
+function onDragEnd() {
+  // 並べ替え後にemit
+  emit('update', [...filteredLogs.value])
 }
 import { ref, computed, watch, onMounted } from 'vue'
 import draggable from 'vuedraggable'
@@ -75,14 +107,31 @@ function emitBack() {
 
 
 const tabs = computed(() => Array.from(new Set(props.logs.map(l => l.tab))))
+
 const selectedTab = ref('')
+const showAddTab = ref(false)
+const addedTabs = ref<string[]>([])
 const defaultIcon = 'data:image/svg+xml;base64,' + btoa('<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg"><rect width="200" height="200" fill="#222"/></svg>')
 
-
-const filteredLogs = ref(props.logs.filter(l => l.tab === tabs.value[0]))
+const filteredLogs = ref([...props.logs])
 
 
 // 色設定（デフォルトは現状のCSS値）
+
+function onTabChange() {
+  addedTabs.value = [];
+  showAddTab.value = false;
+}
+
+function toggleAddTab() {
+  if (showAddTab.value) {
+    // すでに表示中なら閉じる＋選択クリア
+    showAddTab.value = false;
+    addedTabs.value = [];
+  } else {
+    showAddTab.value = true;
+  }
+}
 const pageBgColor = ref('#242424')
 const bubbleBgColor = ref('#ffffff')
 const bubbleBorderColor = ref('#000000')
@@ -93,11 +142,14 @@ onMounted(() => {
 })
 
 
-watch(selectedTab, (tab) => {
-  // filteredLogsの参照を保ったまま中身だけを更新
-  const newLogs = props.logs.filter(l => l.tab === tab)
-  filteredLogs.value.splice(0, filteredLogs.value.length, ...newLogs)
-})
+// タブ切り替え時はprops.logsの順序を維持
+watch(
+  () => [props.logs, selectedTab.value, addedTabs.value],
+  () => {
+    filteredLogs.value = [...props.logs]
+  },
+  { deep: true }
+)
 
 watch(pageBgColor, (val) => {
   document.body.style.backgroundColor = val
@@ -112,6 +164,15 @@ watch(bubbleTextColor, (val) => {
   document.documentElement.style.setProperty('--bubble-text', val)
 })
 
+function escapeHtml(str: string) {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 function exportHtml() {
   // 画像をbase64で埋め込み、CSS・背景色・バブル色・画像サイズを現状に合わせて1ファイルのhtmlを生成
   const css = `<style>
@@ -119,17 +180,35 @@ function exportHtml() {
     .log-row { display: flex; align-items: center; margin-bottom: 16px; }
     .icon-area { width: 100px; height: 100px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
     .icon-area img { width: 100px; height: 100px; object-fit: cover; border-radius: 8px; background: #222; }
-    .log-content { border: 1px solid ${bubbleBorderColor.value}; border-radius: 8px; padding: 16px; margin-left: 16px; background: ${bubbleBgColor.value}; min-width: 0; flex: 1; text-align: left; }
+    .log-content { border: 1px solid ${bubbleBorderColor.value}; border-radius: 8px; padding: 16px; margin-left: 16px; background: ${bubbleBgColor.value}; min-width: 0; flex: 1; text-align: left; position: relative; }
     .char-name { font-weight: bold; font-size: 1.2em; margin-bottom: 8px; text-align: left; }
     .log-text { color: ${bubbleTextColor.value}; text-align: left; }
+    .added-tab-row { display: flex; }
+    .added-tab-empty { width: 50%; }
+    .added-tab-content { width: 50%; background: ${bubbleBgColor.value}; border: 1px solid ${bubbleBorderColor.value}; border-radius: 8px; padding: 16px; position: relative; }
+    .added-tab-label { margin-left: 8px; font-size: 0.95em; font-weight: normal; color: ${bubbleTextColor.value}; }
   </style>`;
-  const html = `<!DOCTYPE html><html><head><meta charset='utf-8'><title>cocologtool export</title>${css}</head><body>` +
-    filteredLogs.value.map(l => {
-      const icon = props.iconMap[l.name] || defaultIcon;
-      // キャラクター名の色はcharColorMap優先
-      const charColor = charColorMap.value[l.name] || l.color;
-      return `<div class='log-row'><div class='icon-area'><img src='${icon}' /></div><div class='log-content'><div class='char-name' style='color:${charColor}'>${l.name}</div><div class='log-text'>${l.text}</div></div></div>`;
-    }).join('') + '</body></html>';
+
+  // メインタブ
+  const mainTab = selectedTab.value || (tabs.value.length > 0 ? tabs.value[0] : '');
+  // 追加タブ
+  const addTabs = addedTabs.value;
+
+  // 編集画面の順序通りに、必要なログのみ出力
+  const html = `<!DOCTYPE html><html lang='ja'><head><meta charset='utf-8'><title>cocologtool export</title>${css}</head><body>` +
+    filteredLogs.value
+      .filter(l => l.tab === mainTab || addTabs.includes(l.tab))
+      .map(l => {
+        if (l.tab === mainTab) {
+          const icon = props.iconMap[l.name] || defaultIcon;
+          const charColor = charColorMap.value[l.name] || l.color;
+          return `<div class='log-row'><div class='icon-area'><img src='${icon}' /></div><div class='log-content'><div class='char-name' style='color:${charColor}'>${escapeHtml(l.name)}</div><div class='log-text'>${escapeHtml(l.text)}</div></div></div>`;
+        } else {
+          const charColor = charColorMap.value[l.name] || l.color;
+          return `<div class='log-row added-tab-row'><div class='added-tab-empty'></div><div class='log-content added-tab-content'><div class='char-name' style='color:${charColor}'>${escapeHtml(l.name)}<span class='added-tab-label'>${escapeHtml(l.tab)}</span></div><div class='log-text'>${escapeHtml(l.text)}</div></div></div>`;
+        }
+      }).join('') +
+    '</body></html>';
   const blob = new Blob([html], { type: 'text/html' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
@@ -148,12 +227,28 @@ const charColorMap = computed(() => {
 </script>
 
 <style scoped>
-.tab-select {
+.tab-select-row {
+  display: flex;
+  align-items: center;
   margin-bottom: 16px;
+  justify-content: center;
+}
+.tab-select {
+  margin-bottom: 0;
+  margin-right: 16px;
 }
 .tab-select label {
   margin-right: 16px;
   font-weight: bold;
+}
+.add-tab-btn-area {
+  margin-left: 8px;
+}
+.add-tab-list {
+  margin-bottom: 16px;
+}
+.add-tab-checkbox {
+  margin-right: 16px;
 }
 .log-list {
   margin-bottom: 24px;
@@ -162,6 +257,29 @@ const charColorMap = computed(() => {
   display: flex;
   align-items: center;
   margin-bottom: 16px;
+  width: 100%;
+  box-sizing: border-box;
+}
+.added-tab-row {
+  display: flex;
+}
+.added-tab-empty {
+  width: 50%;
+  flex-shrink: 0;
+}
+.added-tab-content {
+  width: 50%;
+  background: var(--bubble-bg, #fff);
+  border: 1px solid var(--bubble-border, #ccc);
+  border-radius: 8px;
+  padding: 16px;
+  position: relative;
+  box-sizing: border-box;
+}
+.added-tab-label {
+  margin-left: 8px;
+  font-size: 0.95em;
+  font-weight: normal;
 }
 .icon-area {
   width: 100px;
@@ -186,7 +304,8 @@ const charColorMap = computed(() => {
   margin-left: 16px;
   background: var(--bubble-bg, #fff);
   min-width: 0;
-  flex: 1;
+  flex: auto;
+  box-sizing: border-box;
 }
 
 .color-controls {

@@ -8,13 +8,11 @@ import LogEditor from './components/LogEditor.vue'
 
 
 const step = ref<'upload' | 'icon' | 'edit' | 'done'>('upload')
-const parsed = ref<any>(null)
 const icons = ref<Record<string, string>>({})
 const logsWithId = ref<any[]>([])
 const characters = ref<{ name: string; color: string }[]>([])
 
 function onParsed(data: any) {
-  parsed.value = data
   characters.value = data.characters.map((c: any) => ({ ...c }))
   // 各ログにidを付与
   logsWithId.value = data.logs.map((l: any, i: number) => ({ ...l, id: i }))
