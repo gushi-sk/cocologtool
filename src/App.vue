@@ -1,21 +1,28 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
+
 import LogUploader from './components/LogUploader.vue'
 import CharacterIconSetting from './components/CharacterIconSetting.vue'
+import LogEditor from './components/LogEditor.vue'
 
-const step = ref<'upload' | 'icon' | 'done'>('upload')
+
+const step = ref<'upload' | 'icon' | 'edit' | 'done'>('upload')
 const parsed = ref<any>(null)
 const icons = ref<Record<string, string>>({})
+const logsWithId = ref<any[]>([])
+
 
 function onParsed(data: any) {
   parsed.value = data
+  // 各ログにidを付与
+  logsWithId.value = data.logs.map((l: any, i: number) => ({ ...l, id: i }))
   step.value = 'icon'
 }
 
 function onIconDone(iconMap: Record<string, string>) {
   icons.value = iconMap
-  step.value = 'done'
+  step.value = 'edit'
 }
 </script>
 
@@ -29,10 +36,12 @@ function onIconDone(iconMap: Record<string, string>) {
   <div v-else-if="step === 'icon'">
     <CharacterIconSetting :characters="parsed.characters" @done="onIconDone" />
   </div>
+  <div v-else-if="step === 'edit'">
+    <LogEditor :logs="logsWithId" :iconMap="icons" />
+  </div>
   <div v-else>
     <h2>設定完了</h2>
     <p>キャラクターアイコン設定が完了しました。</p>
-    <!-- ここに次の画面や編集画面への遷移を追加予定 -->
   </div>
 </template>
 
