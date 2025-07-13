@@ -1,65 +1,28 @@
 <template>
   <div>
     <h2>キャラクターアイコン画像設定</h2>
-    <button @click="emitBack" style="margin-left:1em;">ログアップロード画面に戻る</button>
+    <button @click="emitBack">ログアップロード画面に戻る</button>
+    <button @click="emitDone" style="margin-left:1em;">設定完了</button>
     <div style="margin-bottom: 32px;"></div>
-    <div v-for="char in localCharacters" :key="char.name" class="char-row">
-      <div class="char-col icon-col">
-        <div class="icon-box">
-          <img v-if="icons[char.name]" :src="icons[char.name]" />
+    <div class="char-grid">
+      <div v-for="char in localCharacters" :key="char.name" class="char-grid-row">
+        <div class="char-grid-cell icon-cell">
+          <div class="icon-box">
+            <img v-if="icons[char.name]" :src="icons[char.name]" />
+          </div>
+        </div>
+        <div class="char-grid-cell name-cell">
+          <span :style="{color: char.color, fontWeight:'bold'}">{{ char.name }}</span>
+        </div>
+        <div class="char-grid-cell color-cell">
+          <input type="color" v-model="char.color" style="margin-right:0.5em;vertical-align:middle;" />
+          <input type="text" v-model="char.color" style="width:90px;vertical-align:middle;" />
+        </div>
+        <div class="char-grid-cell file-cell">
+          <input type="file" accept="image/*" @change="e=>onIconChange(e, char.name)" />
         </div>
       </div>
-      <div class="char-col name-col">
-        <span :style="{color: char.color, fontWeight:'bold'}">{{ char.name }}</span>
-      </div>
-      <div class="char-col fontcolor-col">
-        <input type="color" v-model="char.color" style="margin-right:0.5em;" />
-        <input type="text" v-model="char.color" style="width:90px;" />
-      </div>
-      <div class="char-col file-col">
-        <input type="file" accept="image/*" @change="e=>onIconChange(e, char.name)" />
-      </div>
     </div>
-/* キャラクター設定行のレイアウト調整 */
-.char-row {
-  display: flex;
-  align-items: center;
-  margin-bottom: 1em;
-  gap: 0.5em;
-}
-.char-col {
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-}
-.icon-col {
-  width: 60px;
-}
-.icon-box {
-  width: 60px;
-  height: 60px;
-  background: #000;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.icon-box img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-.name-col {
-  min-width: 80px;
-  margin-right: 1em;
-}
-.fontcolor-col {
-  min-width: 160px;
-  margin-right: 1em;
-}
-.file-col {
-  min-width: 140px;
-}
-    <button @click="emitDone">設定完了</button>
   </div>
 </template>
 
@@ -92,3 +55,44 @@ function emitBack() {
   window.scrollTo({ top: 0, behavior: 'auto' })
 }
 </script>
+
+<style scoped>
+.char-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.5em;
+}
+.char-grid-row {
+  display: grid;
+  grid-template-columns: 80px 240px 180px 1fr;
+  align-items: center;
+  gap: 0.5em;
+  margin-bottom: 0.5em;
+}
+.char-grid-cell {
+  display: flex;
+  align-items: center;
+}
+.icon-cell {
+  width: 60px;
+}
+.icon-box {
+  width: 60px;
+  height: 60px;
+  background: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.icon-box img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.name-cell {
+  min-width: 180px;
+}
+.color-cell {
+  min-width: 160px;
+}
+</style>

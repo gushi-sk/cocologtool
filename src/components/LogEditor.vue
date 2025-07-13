@@ -2,8 +2,8 @@
   <div>
     <h2>ログ編集画面</h2>
     <div class="button-row">
-      <button @click="exportHtml">エクスポート</button>
-      <button @click="emitBack" style="margin-left:1em;">キャラクターアイコン画像設定画面に戻る</button>
+      <button @click="emitBack">キャラクターアイコン画像設定画面に戻る</button>
+      <button @click="exportHtml" style="margin-left:1em;">エクスポート</button>
     </div>
       <div style="margin-bottom: 32px;"></div>
     <div v-if="tabs.length">
