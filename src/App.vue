@@ -34,10 +34,10 @@ function onIconDone(iconMap: Record<string, string>) {
     <LogUploader @parsed="onParsed" />
   </div>
   <div v-else-if="step === 'icon'">
-    <CharacterIconSetting :characters="parsed.characters" @done="onIconDone" />
+    <CharacterIconSetting :characters="parsed.characters" @done="onIconDone" @back="step = 'upload'" />
   </div>
   <div v-else-if="step === 'edit'">
-    <LogEditor :logs="logsWithId" :iconMap="icons" />
+    <LogEditor :logs="logsWithId" :iconMap="icons" @back="step = 'icon'" />
   </div>
   <div v-else>
     <h2>設定完了</h2>

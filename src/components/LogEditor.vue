@@ -40,6 +40,7 @@
         </template>
       </draggable>
       <button @click="exportHtml">エクスポート</button>
+      <button @click="emitBack" style="margin-left:1em;">キャラクターアイコン画像設定画面に戻る</button>
     </div>
     <div v-else>
       <p>ログデータがありません。</p>
@@ -55,7 +56,10 @@ const props = defineProps<{
   logs: { tab: string; name: string; text: string; color: string; id: number }[]
   iconMap: Record<string, string>
 }>()
-const emit = defineEmits(['update'])
+const emit = defineEmits(['update', 'back'])
+function emitBack() {
+  emit('back')
+}
 
 
 const tabs = computed(() => Array.from(new Set(props.logs.map(l => l.tab))))

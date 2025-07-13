@@ -4,8 +4,7 @@
     <input type="file" accept=".html" @change="onFileChange" />
     <div v-if="error" style="color:red">{{ error }}</div>
     <div v-if="logParsed">
-      <p>ログファイルを解析しました。</p>
-      <button @click="$emit('parsed', parsedData)">キャラクターアイコン設定へ進む</button>
+      <p>ログファイルを解析しました。自動的に次の画面へ進みます…</p>
     </div>
   </div>
 </template>
@@ -64,6 +63,7 @@ function onFileChange(e: Event) {
         logs,
       }
       logParsed.value = true
+      emit('parsed', parsedData.value)
     } catch (e) {
       error.value = 'ファイル解析中にエラーが発生しました。'
     }

@@ -9,6 +9,7 @@
       <input type="file" accept="image/*" @change="e=>onIconChange(e, char.name)" />
     </div>
     <button @click="emitDone">設定完了</button>
+    <button @click="emitBack" style="margin-left:1em;">ログアップロード画面に戻る</button>
   </div>
 </template>
 
@@ -16,7 +17,7 @@
 import { ref, defineProps, defineEmits } from 'vue'
 
 defineProps<{ characters: { name: string; color: string }[] }>()
-const emit = defineEmits(['done'])
+const emit = defineEmits(['done', 'back'])
 const icons = ref<Record<string, string>>({})
 
 function onIconChange(e: Event, name: string) {
@@ -31,5 +32,8 @@ function onIconChange(e: Event, name: string) {
 
 function emitDone() {
   emit('done', icons.value)
+}
+function emitBack() {
+  emit('back')
 }
 </script>
