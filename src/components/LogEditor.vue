@@ -38,6 +38,7 @@
               <img :src="iconMap[element.name] || defaultIcon" alt="icon" />
             </div>
             <div class="log-content left-align">
+              <button class="delete-btn" @click="deleteLog(element.id)" title="この行を削除" type="button">×</button>
               <div class="char-name" :style="{ color: charColorMap[element.name] || element.color }">{{ element.name }}</div>
               <div class="log-text">{{ element.text }}</div>
             </div>
@@ -52,6 +53,13 @@
 </template>
 
 <script setup lang="ts">
+// ログ行の削除
+function deleteLog(id: number) {
+  const idx = filteredLogs.value.findIndex(l => l.id === id)
+  if (idx !== -1) {
+    filteredLogs.value.splice(idx, 1)
+  }
+}
 import { ref, computed, watch, onMounted } from 'vue'
 import draggable from 'vuedraggable'
 
@@ -184,6 +192,26 @@ const charColorMap = computed(() => {
 }
 .log-content.left-align {
   text-align: left;
+}
+.delete-btn {
+  position: absolute;
+  top: 4px;
+  right: 8px;
+  background: transparent;
+  border: none;
+  color: #888;
+  font-size: 1.1em;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+  z-index: 2;
+  transition: color 0.2s;
+}
+.delete-btn:hover {
+  color: #e00;
+}
+.log-content {
+  position: relative;
 }
 .char-name {
   font-weight: bold;
