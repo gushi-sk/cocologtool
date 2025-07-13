@@ -3,11 +3,13 @@
     <h2>キャラクターアイコン画像設定</h2>
     <button @click="emitBack" style="margin-left:1em;">ログアップロード画面に戻る</button>
     <div style="margin-bottom: 32px;"></div>
-    <div v-for="char in characters" :key="char.name" style="display:flex;align-items:center;margin-bottom:1em">
+    <div v-for="char in localCharacters" :key="char.name" style="display:flex;align-items:center;margin-bottom:1em">
       <div style="width:60px;height:60px;background:#000;display:flex;align-items:center;justify-content:center;margin-right:1em;">
         <img v-if="icons[char.name]" :src="icons[char.name]" style="width:100%;height:100%;object-fit:cover;" />
       </div>
       <span :style="{color: char.color, fontWeight:'bold', marginRight:'1em'}">{{ char.name }}</span>
+      <input type="color" v-model="char.color" style="margin-right:0.5em;" />
+      <input type="text" v-model="char.color" style="width:90px;margin-right:1em;" />
       <input type="file" accept="image/*" @change="e=>onIconChange(e, char.name)" />
     </div>
     <button @click="emitDone">設定完了</button>
@@ -17,9 +19,11 @@
 <script setup lang="ts">
 import { ref, defineProps, defineEmits } from 'vue'
 
-defineProps<{ characters: { name: string; color: string }[] }>()
+const props = defineProps<{ characters: { name: string; color: string }[] }>()
 const emit = defineEmits(['done', 'back'])
 const icons = ref<Record<string, string>>({})
+// キャラクターごとにローカルで色を編集できるようにする
+const localCharacters = ref(props.characters.map(c => ({ ...c })))
 
 function onIconChange(e: Event, name: string) {
   const file = (e.target as HTMLInputElement).files?.[0]
@@ -32,7 +36,8 @@ function onIconChange(e: Event, name: string) {
 }
 
 function emitDone() {
-  emit('done', icons.value)
+  // 色変更も反映してemit
+  emit('done', { icons: icons.value, characters: localCharacters.value })
 }
 function emitBack() {
   emit('back')
