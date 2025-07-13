@@ -78,6 +78,7 @@ const tabs = computed(() => Array.from(new Set(props.logs.map(l => l.tab))))
 const selectedTab = ref('')
 const defaultIcon = 'data:image/svg+xml;base64,' + btoa('<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg"><rect width="200" height="200" fill="#222"/></svg>')
 
+
 const filteredLogs = ref(props.logs.filter(l => l.tab === tabs.value[0]))
 
 
@@ -91,8 +92,11 @@ onMounted(() => {
   selectedTab.value = tabs.value[0] || ''
 })
 
+
 watch(selectedTab, (tab) => {
-  filteredLogs.value = props.logs.filter(l => l.tab === tab)
+  // filteredLogsの参照を保ったまま中身だけを更新
+  const newLogs = props.logs.filter(l => l.tab === tab)
+  filteredLogs.value.splice(0, filteredLogs.value.length, ...newLogs)
 })
 
 watch(pageBgColor, (val) => {
@@ -118,18 +122,20 @@ function exportHtml() {
     .log-content { border: 1px solid ${bubbleBorderColor.value}; border-radius: 8px; padding: 16px; margin-left: 16px; background: ${bubbleBgColor.value}; min-width: 0; flex: 1; text-align: left; }
     .char-name { font-weight: bold; font-size: 1.2em; margin-bottom: 8px; text-align: left; }
     .log-text { color: ${bubbleTextColor.value}; text-align: left; }
-  </style>`
+  </style>`;
   const html = `<!DOCTYPE html><html><head><meta charset='utf-8'><title>cocologtool export</title>${css}</head><body>` +
     filteredLogs.value.map(l => {
-      const icon = props.iconMap[l.name] || defaultIcon
-      return `<div class='log-row'><div class='icon-area'><img src='${icon}' /></div><div class='log-content'><div class='char-name' style='color:${l.color}'>${l.name}</div><div class='log-text'>${l.text}</div></div></div>`
-    }).join('') + '</body></html>'
-  const blob = new Blob([html], { type: 'text/html' })
-  const a = document.createElement('a')
-  a.href = URL.createObjectURL(blob)
-  a.download = 'cocologtool_export.html'
-  a.click()
-  URL.revokeObjectURL(a.href)
+      const icon = props.iconMap[l.name] || defaultIcon;
+      // キャラクター名の色はcharColorMap優先
+      const charColor = charColorMap.value[l.name] || l.color;
+      return `<div class='log-row'><div class='icon-area'><img src='${icon}' /></div><div class='log-content'><div class='char-name' style='color:${charColor}'>${l.name}</div><div class='log-text'>${l.text}</div></div></div>`;
+    }).join('') + '</body></html>';
+  const blob = new Blob([html], { type: 'text/html' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'cocologtool_export.html';
+  a.click();
+  URL.revokeObjectURL(a.href);
 }
 
 const charColorMap = computed(() => {
